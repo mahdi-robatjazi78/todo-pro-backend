@@ -1,9 +1,11 @@
 const express = require("express")
 const app = express()
 const MainRoutes = require("./routes")
+const cors = require("cors")
 
 
-app.use(express.json(   ))
+app.use(cors())
+app.use(express.json())
 app.use(MainRoutes)
 
 app.get("/" , (req,res)=>{

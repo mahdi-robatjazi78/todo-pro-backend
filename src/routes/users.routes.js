@@ -1,20 +1,16 @@
 const express = require("express")
 const UsersRouter = express.Router()
-
-
-
+const verifyToken = require("../db/Authentication")
 const {
     CreateNewUser,
     LoginUser,
-    LogoutUser
+    LogoutUser,
 } = require (
-    "../controller/userController"
+    "../controller/user"
 )
-
-
 
 UsersRouter.post("/new" , CreateNewUser)
 UsersRouter.post("/login" , LoginUser)
-UsersRouter.put("/logout" , LogoutUser)
+UsersRouter.put("/logout" ,verifyToken, LogoutUser)
 
 module.exports=UsersRouter

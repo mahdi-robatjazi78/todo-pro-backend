@@ -1,4 +1,4 @@
-const UserModel = require("../db/userSchema");
+const UserModel = require("../db/schema/userSchema");
 const jwt = require("jsonwebtoken");
 
 const createNewUser = async (req, res, next) => {
@@ -41,8 +41,6 @@ const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    console.log("login >>>", email, password);
-
     let result = await UserModel.findUser_comparePassword(email, password);
     console.log("result compare password >>>", result);
     const token = jwt.sign(
@@ -63,8 +61,6 @@ const loginUser = async (req, res, next) => {
       res.status(404).json({ msg: `You'r email not found in our database` });
     }
 
-    console.log("User", User);
-
     const data = {
       email: result.email,
       userName: result.userName,
@@ -76,8 +72,9 @@ const loginUser = async (req, res, next) => {
     res
       .status(200)
       .json({
+        ...data, 
+        token, 
         msg: "you have successfully logged in",
-        data: { ...data, token },
       });
   } catch (error) {
     res.status(404).json({ msg: `You'r email not found in our database` });
@@ -87,10 +84,11 @@ const loginUser = async (req, res, next) => {
 
 const logoutUser = async (req, res, next) => {
   try {
-    console.log("logout", req.body.email);
+    let _id = req.user.data._id
+
     await UserModel.findOneAndUpdate(
       {
-        email: req.body.email,
+        _id
       },
       {
         $set: {

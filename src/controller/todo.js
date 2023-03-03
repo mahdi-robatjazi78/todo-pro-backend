@@ -1,69 +1,69 @@
 
-const TodoModel = require("../db/todoSchema")
-const CategoryModel = require("../db/categorySchema");
-const { default: mongoose } = require("mongoose");
-
-
+const TodoModel = require("../db/schema/todoSchema")
+const CategoryModel = require("../db/schema/categorySchema");
+const WorkspaceModel = require("../db/schema/workspaceSchema");
 
 const getAllTodos = async(req,res,next)=>{
     try{
       const userID = req.user.data._id
       const category = req.query.category || "other"
-      // console.log(userID)
-      // console.log("category , " , category)
-
-
-   
+      const ws = req.query.ws
 
       let Todos =[]
-      if(category === "other"){  
-       Todos = await TodoModel.find({owner : userID})  
+      if(category === "other"){
+       Todos = await TodoModel.find({owner : userID ,ws})  
       }
       else{
-        Todos = await TodoModel.find({owner : userID , categoId : category})  
+        Todos = await TodoModel.find({owner : userID , categoId : category, ws})  
       }
 
-      
       res.status(200).json({
         todos:Todos
       })
+
     }catch(error){
-        res.status(400).json({msg:"something went wrong"})
+      res.status(400).json({msg:"something went wrong"})
     }
 
 };
 
 const newTodo  = async (req,res)=>{
-    
   try{
-
     const id = req.user.data._id
-     
-     const body = new TodoModel(
+    const body = new TodoModel(
     {
       body:req.body.todo,
+      ws:req.body.ws,
       categoId : req.body.categoId || "other",
-      // expireTime : req.body.expireTime,
       date:new Date().getTime(),
       flag:"created",
       owner:id
     })
     await body.save()
-
-    
      
     if(req.body.categoId !== "other"){
       await CategoryModel.findOneAndUpdate({uuid:req.body. categoId} , {$inc:{task_count:1}})
     }
 
+    await WorkspaceModel.findOneAndUpdate({
+      id : req.body.ws
+    } , {
+      $inc:{todoSum:1}
+    }
+  );
 
-    res.status(200).json({msg:"you'r todo created successfully"})
+  res.status(200).json({msg:"you'r todo created successfully"})
 
   }catch(error){
     console.log(error)
     res.status(400).json({msg:"something went wrong"})
   }
 }
+
+
+
+
+
 
 const setIsDoneTask =async(req,res,next)=>{
     try {
@@ -86,12 +86,12 @@ const setIsDoneTask =async(req,res,next)=>{
 const deleteTask =async(req,res,next)=>{
   try {
     const id = req.params.id ;
-
+    const ws = req.query.ws
     const todo = await TodoModel.findById(id)
     const categoId = todo?.categoId 
 
     
-
+    console.log("delete todo" , id , ws);
 
     if(categoId){ 
       await CategoryModel.findOneAndUpdate({uuid:categoId} , {$inc:{task_count:-1}})
@@ -99,6 +99,12 @@ const deleteTask =async(req,res,next)=>{
 
     await TodoModel.deleteOne({_id : id})
 
+    await WorkspaceModel.findOneAndUpdate({
+      id : ws
+    } , {
+      $inc:{todoSum:-1}
+    }
+  );
 
     res.status(200).json({
       msg:"Your todo successfuly removed"
@@ -162,8 +168,6 @@ const assignTaskToAnotherCategory = async(req,res,next)=>{
 
     
     const {todoId ,prevCategoId , newCategoId} = req.body
-    
-    console.log("incomes >>>",todoId ,prevCategoId , newCategoId)
     if(!todoId || !prevCategoId || !newCategoId){
       res.status(400).json({msg:"something went wrong"})
     }

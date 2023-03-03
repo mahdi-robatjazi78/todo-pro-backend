@@ -1,4 +1,4 @@
-const { mongoose, connection } =require("./config")
+const { mongoose, connection } =require("../config")
 const bcrypt = require("bcryptjs")
 const dotenv = require("dotenv")
 const jwt = require("jsonwebtoken")
@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   fname: {type:String,required:false, trim:true },
   lname: {type:String,required:false, trim:true },
   userName:{type:String,required:true , trime:true},
-  email: {type:String, required: true, trim:true },
+  email: {type:String, required: true, trim:true }, 
   password: {type:String,required:true, trim:true },
   token:{type:String,required:false},
   gender:{type:String,required:true}
@@ -30,8 +30,6 @@ userSchema.pre("save", function (next){
         if (err) throw new Error(err);
         user.password = HASH;
         
-        console.log(">>>user.>>>" , user)
-       
         next()
       });
     });

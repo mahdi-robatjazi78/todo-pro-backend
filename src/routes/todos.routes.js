@@ -1,7 +1,7 @@
 const express = require("express")
 const TodosRouter = express.Router()
 const {getAllTodos,newTodo,setIsDoneTask,deleteTask,updateTask,assignTaskToCategory , exitTodoFromCategory, assignTaskToAnotherCategory}
- = require('../controller/todoController')
+ = require('../controller/todo')
 const verifyToken = require("../db/Authentication")
 
 

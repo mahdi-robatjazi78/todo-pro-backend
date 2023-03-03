@@ -1,11 +1,11 @@
 
 const express = require("express")
 const CategoryRoutes = express.Router()
-const {NewCategory, GetCategoryList ,GetInformationOfCategory,DeleteOnlyCategory, DeleteCategoryWithTodos ,EditCategoryTitle} = require('../controller/categoryController')
+const {NewCategory, GetCategoryList ,GetInformationOfCategory,DeleteOnlyCategory, DeleteCategoryWithTodos ,EditCategoryTitle} = require('../controller/category')
 const verifyToken = require("../db/Authentication")
 
 
-CategoryRoutes.get("/getAll",verifyToken,GetCategoryList)
+CategoryRoutes.get("/index",verifyToken,GetCategoryList)
 CategoryRoutes.get("/getInfo",verifyToken,GetInformationOfCategory)
 CategoryRoutes.post("/new",verifyToken,NewCategory)
 CategoryRoutes.put("/editname",verifyToken,EditCategoryTitle)
