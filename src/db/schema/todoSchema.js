@@ -1,5 +1,6 @@
 const { mongoose, connection } = require("../config")
 const dotenv = require("dotenv")
+const mongoosePaginate = require('mongoose-paginate');
 dotenv.config();
 
 const todoScheme = new mongoose.Schema({
@@ -13,6 +14,8 @@ const todoScheme = new mongoose.Schema({
   },
   ws:{type:String,required:true}
 });
+
+todoScheme.plugin(mongoosePaginate)
 
 
 module.exports = connection.model("Todos", todoScheme);

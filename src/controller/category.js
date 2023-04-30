@@ -21,7 +21,7 @@ const newCategory = async (req, res, next) => {
         task_count:0
       }
     )
-    newCategory.save()
+    await newCategory.save()
 
     // workspace category sum increase one number
 

@@ -5,7 +5,6 @@ const TodoModel = require("../db/schema/todoSchema");
 const makeWorkspace = async (req, res, next) => {
   try {
     const userId = req.user.data._id;
-    console.log("userId", userId, req.body);
     const workspaceBody = new WorkspaceModel({
       title: req.body.title,
       date: new Date().getTime(),

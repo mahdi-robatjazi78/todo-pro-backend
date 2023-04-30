@@ -7,7 +7,7 @@ const verifyToken = require("../db/Authentication")
 
 CategoryRoutes.get("/index",verifyToken,GetCategoryList)
 CategoryRoutes.get("/getInfo",verifyToken,GetInformationOfCategory)
-CategoryRoutes.post("/new",verifyToken,NewCategory)
+CategoryRoutes.post("/store",verifyToken,NewCategory)
 CategoryRoutes.put("/editname",verifyToken,EditCategoryTitle)
 CategoryRoutes.delete("/deleteOnlyCategory",verifyToken,DeleteOnlyCategory)
 CategoryRoutes.delete("/deleteCategoryWithTodos",verifyToken,DeleteCategoryWithTodos)

@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 
 const createNewUser = async (req, res, next) => {
   try {
-    console.log("new user body >>>", req.body);
 
     const userName =
       req.body.firstName.split(" ").join("_") +
@@ -27,8 +26,6 @@ const createNewUser = async (req, res, next) => {
     delete person._id;
     delete person.password;
 
-    console.log("person >>>", person);
-
     res.status(200).json({
       msg: "user successfully save on database",
     });
@@ -42,7 +39,6 @@ const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
 
     let result = await UserModel.findUser_comparePassword(email, password);
-    console.log("result compare password >>>", result);
     const token = jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 60,
@@ -50,7 +46,6 @@ const loginUser = async (req, res, next) => {
       },
       process.env.JWT_SECRET_PASS
     );
-    console.log("token >>>", token);
 
     const User = await UserModel.findOneAndUpdate(
       { email },

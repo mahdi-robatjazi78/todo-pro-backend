@@ -6,8 +6,8 @@ const verifyToken = require("../db/Authentication")
 
 
 
-TodosRouter.get("/getAll",verifyToken,getAllTodos)
-TodosRouter.post("/newTodo",verifyToken,newTodo)
+TodosRouter.get("/index",verifyToken,getAllTodos)
+TodosRouter.post("/store",verifyToken,newTodo)
 TodosRouter.put("/done",verifyToken,setIsDoneTask)
 TodosRouter.delete("/delete/:id",verifyToken,deleteTask)
 TodosRouter.put("/update-body",verifyToken,updateTask)
