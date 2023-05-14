@@ -269,7 +269,27 @@ const bulkRemoveTodos = async (req, res) => {
     });
   }
 };
-const bulkSetTodosDone = async (req, res) => {};
+const bulkSetTodosDone = async (req, res) => {
+  try {
+    const ws = req.query.ws;
+    const { todoListIds } = req.body;
+    const count = todoListIds.length;
+    const userID = req.user.data._id;
+
+    await TodoModel.updateMany(
+      { owner: userID, _id: { $in: todoListIds } },
+      { flag: "isDone" }
+    );
+    res.status(200).json({
+      msg: `${count} Todo Items Done`,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      msg: `Something went wrong in server`,
+    });
+  }
+};
 const bulkAssignTodosToCategory = async (req, res) => {};
 
 exports.getAllTodos = getAllTodos;
@@ -281,3 +301,4 @@ exports.assignTaskToCategory = assignTaskToCategory;
 exports.assignTaskToAnotherCategory = assignTaskToAnotherCategory;
 exports.exitTodoFromCategory = exitTodoFromCategory;
 exports.bulkRemoveTodos = bulkRemoveTodos;
+exports.bulkSetTodosDone = bulkSetTodosDone;

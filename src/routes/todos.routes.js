@@ -10,6 +10,7 @@ const {
   exitTodoFromCategory,
   assignTaskToAnotherCategory,
   bulkRemoveTodos,
+  bulkSetTodosDone,
 } = require("../controller/todo");
 
 const verifyToken = require("../db/Authentication");
@@ -27,5 +28,6 @@ TodosRouter.put(
 );
 TodosRouter.put("/exit-from-category", verifyToken, exitTodoFromCategory);
 TodosRouter.delete("/delete-many", verifyToken, bulkRemoveTodos);
+TodosRouter.put("/done-many", verifyToken, bulkSetTodosDone);
 
 module.exports = TodosRouter;

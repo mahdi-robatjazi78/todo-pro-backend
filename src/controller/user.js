@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 
 const createNewUser = async (req, res, next) => {
   try {
-
     const userName =
       req.body.firstName.split(" ").join("_") +
       "_" +
@@ -42,7 +41,7 @@ const loginUser = async (req, res, next) => {
     const token = jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 60,
-        data: {_id:result._id ,email:result.email },
+        data: { _id: result._id, email: result.email },
       },
       process.env.JWT_SECRET_PASS
     );
@@ -53,7 +52,7 @@ const loginUser = async (req, res, next) => {
     );
     if (!User) {
       console.log("not found");
-      res.status(404).json({ msg: `You'r email not found in our database` });
+      res.status(404).json({ msg: `You'r email not found in our records` });
     }
 
     const data = {
@@ -64,26 +63,24 @@ const loginUser = async (req, res, next) => {
       gender: result.gender,
     };
 
-    res
-      .status(200)
-      .json({
-        ...data, 
-        token, 
-        msg: "you have successfully logged in",
-      });
+    res.status(200).json({
+      ...data,
+      token,
+      msg: "you have successfully logged in",
+    });
   } catch (error) {
-    res.status(404).json({ msg: `You'r email not found in our database` });
+    res.status(404).json({ msg: `You'r email not found in our records` });
     next(error);
   }
 };
 
 const logoutUser = async (req, res, next) => {
   try {
-    let _id = req.user.data._id
+    let _id = req.user.data._id;
 
     await UserModel.findOneAndUpdate(
       {
-        _id
+        _id,
       },
       {
         $set: {
