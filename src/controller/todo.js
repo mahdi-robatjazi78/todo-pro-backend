@@ -10,14 +10,13 @@ const getAllTodos = async (req, res, next) => {
     const perPage = req.query.perPage;
     const searchText = req.query.searchText;
 
-    let result = [] 
-    if(!searchText){
+    let result = [];
+    if (!searchText) {
       // use mongoose-paginate extention for add paginate query
       result = await TodoModel.paginate(
         { owner: userID, ws },
         { page, limit: perPage }
       );
-
 
       res.status(200).json({
         todos: result.docs,
@@ -28,24 +27,18 @@ const getAllTodos = async (req, res, next) => {
           total_pages: result.pages,
         },
       });
-    }
-    else{
-
+    } else {
       result = await TodoModel.find({
         ws,
         owner: userID,
         // body: { $regex: searchText },
-        body : { $regex: new RegExp(searchText.toLowerCase(), "i") } ,
+        body: { $regex: new RegExp(searchText.toLowerCase(), "i") },
       });
-
-
 
       res.status(200).json({
         todos: result,
       });
-
     }
- 
   } catch (error) {
     res.status(400).json({ msg: "something went wrong" });
   }
@@ -135,8 +128,6 @@ const deleteTask = async (req, res, next) => {
     next(error);
   }
 };
-
-const bulkDeleteTask = async (req, res, next) => {};
 
 const updateTask = async (req, res, next) => {
   try {
@@ -236,15 +227,50 @@ const exitTodoFromCategory = async (req, res) => {
       { $inc: { task_count: -todos.length } }
     );
 
-    res
-      .status(200)
-      .json({
-        msg: `${todos.length} todos exited from category ${result.title}`,
-      });
+    res.status(200).json({
+      msg: `${todos.length} todos exited from category ${result.title}`,
+    });
   } catch (error) {
     console.log(error);
   }
 };
+
+const bulkRemoveTodos = async (req, res) => {
+  try {
+    const ws = req.query.ws;
+    const { todoListIds } = req.body;
+    const count = todoListIds.length;
+    const userID = req.user.data._id;
+
+    async function decreaseCategoryTaskCountNumber(todoID) {
+      const todo = await TodoModel.findById(todoID);
+      if (todo && todo.categoId) {
+        await CategoryModel.findOneAndUpdate(
+          { uuid: todo.categoId },
+          {
+            $inc: { task_count: -1 },
+          }
+        );
+      }
+    }
+
+    todoListIds.forEach((todoID) => {
+      decreaseCategoryTaskCountNumber(todoID);
+    });
+
+    await TodoModel.deleteMany({ owner: userID, _id: { $in: todoListIds } });
+    res.status(200).json({
+      msg: `${count} Todo Items Deleted Successfully`,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      msg: `Something went wrong in server`,
+    });
+  }
+};
+const bulkSetTodosDone = async (req, res) => {};
+const bulkAssignTodosToCategory = async (req, res) => {};
 
 exports.getAllTodos = getAllTodos;
 exports.newTodo = newTodo;
@@ -254,3 +280,4 @@ exports.updateTask = updateTask;
 exports.assignTaskToCategory = assignTaskToCategory;
 exports.assignTaskToAnotherCategory = assignTaskToAnotherCategory;
 exports.exitTodoFromCategory = exitTodoFromCategory;
+exports.bulkRemoveTodos = bulkRemoveTodos;
