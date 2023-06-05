@@ -51,8 +51,8 @@ const loginUser = async (req, res, next) => {
       { $set: { token } }
     );
     if (!User) {
-      console.log("not found");
       res.status(404).json({ msg: `You'r email not found in our records` });
+      return;
     }
 
     const data = {

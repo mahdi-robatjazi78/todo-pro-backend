@@ -1,5 +1,6 @@
 const WorkspaceModel = require("../db/schema/workspaceSchema");
 const cryptoRandomString = require("crypto-random-string");
+const CategoryModel = require("../db/schema/categorySchema");
 const TodoModel = require("../db/schema/todoSchema");
 
 const makeWorkspace = async (req, res, next) => {
@@ -56,30 +57,30 @@ const getAllWorkspaces = async (req, res, next) => {
   }
 };
 
-
 const getActiveWorkspaces = async (req, res, next) => {
   try {
     const userID = req.user.data._id;
 
-    const activeWorkspace  = await WorkspaceModel.find({ owner: userID , active:true });
-    if(activeWorkspace.length){
+    const activeWorkspace = await WorkspaceModel.find({
+      owner: userID,
+      active: true,
+    });
+    if (activeWorkspace.length) {
       res.status(200).json({
-        activeWorkspace : activeWorkspace[0] ? activeWorkspace[0] : null ,
+        activeWorkspace: activeWorkspace[0] ? activeWorkspace[0] : null,
       });
-
-    }else{
+    } else {
       res.status(404).json({
-        activeWorkspace:null,
-        msg : "You not have any active workspace"
+        activeWorkspace: null,
+        msg: "You not have any active workspace",
       });
     }
-
-  }catch(error){
+  } catch (error) {
     res.status(400).json({
       msg: "Something went wrong",
     });
   }
-}
+};
 
 const handleWorkspaceChangeActivation = async (req, res, next) => {
   try {
@@ -115,15 +116,21 @@ const handleWorkspaceChangeActivation = async (req, res, next) => {
         }
       );
     }
-    if(active){
-
-      const ActiveWorkspace = await WorkspaceModel.find({ owner: userID , active:true});
-      res.status(200).json({ msg: "Activated successfully" , activeWorkspace: ActiveWorkspace[0] });
-      
-    }else{
-      res.status(200).json({ msg:"Deactivated successfully", activeWorkspace : null });
+    if (active) {
+      const ActiveWorkspace = await WorkspaceModel.find({
+        owner: userID,
+        active: true,
+      });
+      res.status(200).json({
+        msg: "Activated successfully",
+        activeWorkspace: ActiveWorkspace[0],
+      });
+    } else {
+      res
+        .status(200)
+        .json({ msg: "Deactivated successfully", activeWorkspace: null });
     }
-  } catch(error){
+  } catch (error) {
     res.status(400).json({
       msg: "Something went wrong",
     });
@@ -135,7 +142,7 @@ const renameWorkspace = async (req, res, next) => {
     const wsId = req.body.id;
     const newName = req.body.title;
 
-    const list = await WorkspaceModel.updateOne(
+    await WorkspaceModel.updateOne(
       {
         id: wsId,
       },
@@ -144,8 +151,17 @@ const renameWorkspace = async (req, res, next) => {
       }
     );
 
-    res.status(200).json({ msg: "Rename successfully", list: list });
-  } catch(error){
+    const data = await WorkspaceModel.findOne({
+      id: wsId,
+    });
+
+    console.log("data >> ", data);
+
+    res.status(200).json({
+      msg: "Rename successfully",
+      data: { id: data.id, title: data.title },
+    });
+  } catch (error) {
     res.status(400).json({
       msg: "Something went wrong",
     });
@@ -155,12 +171,28 @@ const renameWorkspace = async (req, res, next) => {
 const deleteWorkspace = async (req, res, next) => {
   try {
     const wsId = req.query.id;
-    const list = await WorkspaceModel.findOneAndDelete({
+    console.log(wsId);
+    if (!wsId) {
+      res.status(400).json({
+        msg: "Please send workspace id",
+      });
+      return;
+    }
+
+    await WorkspaceModel.findOneAndDelete({
       id: wsId,
     });
 
-    res.status(200).json({ msg: "Deleted successfully" });
-  } catch(error){
+    await CategoryModel.deleteMany({
+      ws: wsId,
+    });
+
+    await TodoModel.deleteMany({
+      ws: wsId,
+    });
+
+    res.status(200).json({ msg: "Your workspace deleted successfully" });
+  } catch (error) {
     res.status(400).json({
       msg: "Something went wrong",
     });

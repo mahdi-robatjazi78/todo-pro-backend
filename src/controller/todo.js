@@ -290,7 +290,43 @@ const bulkSetTodosDone = async (req, res) => {
     });
   }
 };
-const bulkAssignTodosToCategory = async (req, res) => {};
+const bulkAssignTodosToCategory = async (req, res) => {
+  try {
+    const { todoList, categoId } = req.body;
+    console.log("here , ,,,  ", todoList, categoId);
+    if (!todoList?.length || !categoId) {
+      res.status(400).json({ msg: "something went wrong" });
+    } else {
+      async function handleAssignSpecificTodoToCategory(id) {
+        const selectedTodo = await TodoModel.findById(id);
+
+        if (selectedTodo.categoId === "other") {
+          await TodoModel.findByIdAndUpdate(id, { categoId: "other" });
+        } else {
+          await CategoryModel.findOneAndUpdate(
+            { uuid: selectedTodo.categoId },
+            { $inc: { task_count: -1 } }
+          );
+          await TodoModel.findByIdAndUpdate(id, { categoId });
+        }
+      }
+
+      todoList.forEach((item) => {
+        handleAssignSpecificTodoToCategory(item);
+      });
+
+      await CategoryModel.findOneAndUpdate(
+        { uuid: categoId },
+        { $inc: { task_count: todoList.length } }
+      );
+
+      res.status(200).json({ msg: "All Todos successfully added to category" });
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
 
 exports.getAllTodos = getAllTodos;
 exports.newTodo = newTodo;
@@ -302,3 +338,4 @@ exports.assignTaskToAnotherCategory = assignTaskToAnotherCategory;
 exports.exitTodoFromCategory = exitTodoFromCategory;
 exports.bulkRemoveTodos = bulkRemoveTodos;
 exports.bulkSetTodosDone = bulkSetTodosDone;
+exports.bulkAssignTodosToCategory = bulkAssignTodosToCategory;
