@@ -54,6 +54,7 @@ const newTodo = async (req, res) => {
       date: new Date().getTime(),
       flag: "created",
       owner: id,
+      priority: req.body?.priority || 0,
     });
     await body.save();
 
@@ -293,7 +294,6 @@ const bulkSetTodosDone = async (req, res) => {
 const bulkAssignTodosToCategory = async (req, res) => {
   try {
     const { todoList, categoId } = req.body;
-    console.log("here , ,,,  ", todoList, categoId);
     if (!todoList?.length || !categoId) {
       res.status(400).json({ msg: "something went wrong" });
     } else {
@@ -328,6 +328,47 @@ const bulkAssignTodosToCategory = async (req, res) => {
   }
 };
 
+const updatePriority = async (req, res) => {
+  try {
+    const id = req.body.id;
+    await TodoModel.findOneAndUpdate(
+      { _id: id },
+      { $set: { priority: +req.body.priority } }
+    );
+
+    res.status(200).json({
+      msg: "Your todo priority successfuly updated",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updatePriorityBulk = async (req, res) => {
+  try {
+    const ws = req.query.ws;
+    const { todoListIds, priority } = req.body;
+    const count = todoListIds.length;
+    const userID = req.user.data._id;
+
+    await TodoModel.updateMany(
+      { owner: userID, _id: { $in: todoListIds } },
+      { priority }
+    );
+    res.status(200).json({
+      msg: `${count} Todo items set ${
+        priority === 0
+          ? "Low Priority"
+          : priority === 1
+          ? "Medium Priority"
+          : "High Priority"
+      }`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getAllTodos = getAllTodos;
 exports.newTodo = newTodo;
 exports.setIsDoneTask = setIsDoneTask;
@@ -339,3 +380,5 @@ exports.exitTodoFromCategory = exitTodoFromCategory;
 exports.bulkRemoveTodos = bulkRemoveTodos;
 exports.bulkSetTodosDone = bulkSetTodosDone;
 exports.bulkAssignTodosToCategory = bulkAssignTodosToCategory;
+exports.updatePriority = updatePriority;
+exports.updatePriorityBulk = updatePriorityBulk;

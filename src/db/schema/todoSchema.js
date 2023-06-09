@@ -12,7 +12,8 @@ const todoScheme = new mongoose.Schema({
   categoId:{
     type:String , required:false
   },
-  ws:{type:String,required:true}
+  ws:{type:String,required:true},
+  priority : {type:Number , required:false}
 });
 
 todoScheme.plugin(mongoosePaginate)

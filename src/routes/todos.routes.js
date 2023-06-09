@@ -12,6 +12,8 @@ const {
   bulkRemoveTodos,
   bulkSetTodosDone,
   bulkAssignTodosToCategory,
+  updatePriority,
+  updatePriorityBulk
 } = require("../controller/todo");
 
 const verifyToken = require("../db/Authentication");
@@ -31,5 +33,8 @@ TodosRouter.put("/exit-from-category", verifyToken, exitTodoFromCategory);
 TodosRouter.delete("/delete-many", verifyToken, bulkRemoveTodos);
 TodosRouter.put("/done-many", verifyToken, bulkSetTodosDone);
 TodosRouter.put("/assign-many", verifyToken, bulkAssignTodosToCategory);
+TodosRouter.put('/update-priority' , verifyToken , updatePriority)
+TodosRouter.put('/update-priority-many' , verifyToken , updatePriorityBulk)
+
 
 module.exports = TodosRouter;
