@@ -1,20 +1,24 @@
 const UserModel = require("../db/schema/userSchema");
+const ImageModel = require("../db/schema/imageSchema");
 const jwt = require("jsonwebtoken");
+const userAvatarModel = require("../db/schema/imageSchema"); 
+// const { async } = require("crypto-random-string");
+
+const fs = require("fs")
+const path = require("path")
 
 const createNewUser = async (req, res, next) => {
   try {
-    const userName =
-      req.body.firstName.split(" ").join("_") +
-      "_" +
-      req.body.lastName.split(" ").join("_");
+ 
 
     const data = {
       fname: req.body.firstName,
       lname: req.body.lastName,
-      userName,
       password: req.body.password,
       email: req.body.email,
       gender: req.body.gender || "male",
+      haveAvatar : false,
+      haveBanner : false,
     };
 
     const newUser = new UserModel(data);
@@ -56,12 +60,35 @@ const loginUser = async (req, res, next) => {
     }
 
     const data = {
-      email: result.email,
-      userName: result.userName,
+      email: result.email, 
       fname: result.fname,
       lname: result.lname,
       gender: result.gender,
+      picture : {
+        avatar : null,
+        banner : null,
+      }
     };
+
+
+
+    if(User.haveAvatar){
+      const f1 = await userAvatarModel.findOne({userId : User._id.toString() , why:"profile-avatar"})
+      
+      if(f1?.filename){ 
+        data.picture.avatar = f1.filename;
+      }
+    }
+
+    if(User.haveBanner){
+      const f2 = await userAvatarModel.findOne({userId : User._id.toString(),why:"profile-banner"})
+      
+      if(f2?.filename){ 
+        data.picture.banner = f2.filename;
+      }
+    }
+
+    
 
     res.status(200).json({
       ...data,
@@ -73,6 +100,63 @@ const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
+
+const GetProfileMeData = async (req, res, next) => {
+  try {
+
+
+    const User = await UserModel.findById(req.user.data._id);
+    if (!User) {
+      res.status(500).json({ msg: `Something went wrong` });
+      return;
+    }
+
+    const data = {
+      email: User.email, 
+      fname: User.fname,
+      lname: User.lname,
+      gender: User.gender,
+      picture : {
+        avatar : null,
+        banner : null,
+      }
+    };
+
+
+
+    if(User.haveAvatar){
+      const f1 = await userAvatarModel.findOne({userId : User._id.toString() , why:"profile-avatar"})
+      
+      if(f1.filename){ 
+        data.picture.avatar = f1.filename;
+      }
+    }
+
+    if(User.haveBanner){
+      const f2 = await userAvatarModel.findOne({userId : User._id.toString(), why:"profile-banner"})
+      
+      if(f2.filename){ 
+        data.picture.banner = f2.filename;
+      }
+    }
+
+    
+
+    res.status(200).json({
+      ...data,
+      msg: "Successfully founded you",
+    }); 
+
+    
+  }catch(error){
+    console.log(error)
+  }
+
+}
+
+
+
 
 const logoutUser = async (req, res, next) => {
   try {
@@ -94,6 +178,42 @@ const logoutUser = async (req, res, next) => {
   }
 };
 
+
+const uploadUserAvatar = async(req, res, next) => { 
+  try{
+  
+  const avatarUploaded = (req.body.avatarUploaded === "true" ||req.body.avatarUploaded === true)  ? true : false
+
+  console.log("0-->>",req.body.avatarUploaded)
+
+  const profileImageData = {
+    userId : req.user?.data?._id,
+    originalname:req.file?.originalname,
+    mimetype:req.file.mimetype,
+    filename :req.file.filename ,  
+    whoUseIt : "user",
+    why :avatarUploaded ?  "profile-avatar" :"profile-banner"
+  }
+
+  const newProfileImage = new ImageModel(profileImageData)
+  newProfileImage.save()
+
+  await UserModel.findOneAndUpdate(
+    { _id: req.user?.data?._id },
+    { $set: avatarUploaded == true ? { haveAvatar : true } : { haveBanner : true} }
+  );
+
+    res.status(200).json({msg : "you'r image uploaded successfully"})
+  }
+  catch(error){
+    next(error);
+  }
+}
+
+
+
 module.exports.CreateNewUser = createNewUser;
 module.exports.LoginUser = loginUser;
+module.exports.GetProfileMeData = GetProfileMeData;
 module.exports.LogoutUser = logoutUser;
+module.exports.uploadUserAvatar = uploadUserAvatar;

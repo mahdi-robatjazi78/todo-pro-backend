@@ -5,11 +5,23 @@ const TodoModel = require("../db/schema/todoSchema");
 
 const makeWorkspace = async (req, res, next) => {
   try {
-    const userId = req.user.data._id;
+    const userID = req.user.data._id;
+  
+    const wsList = await WorkspaceModel.find({
+      owner: userID,
+    });
+    
+    if(wsList.length >= 6){
+      res.status(423).json({ msg:`You are allowed to create 6 workspaces Please upgrade your account` });
+      return
+    }
+    
+    else {
+   
     const workspaceBody = new WorkspaceModel({
       title: req.body.title,
       date: new Date().getTime(),
-      owner: userId,
+      owner: userID,
       id: cryptoRandomString({ length: 7 }),
       active: false,
       categorySum: 0,
@@ -19,6 +31,8 @@ const makeWorkspace = async (req, res, next) => {
     await workspaceBody.save();
 
     res.status(200).json({ msg: "you'r todo workspace created successfully" });
+  }
+
   } catch (error) {
     console.error(error);
   }

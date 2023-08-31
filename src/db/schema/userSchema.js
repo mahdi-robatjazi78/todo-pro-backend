@@ -8,11 +8,13 @@ dotenv.config();
 const userSchema = new mongoose.Schema({
   fname: {type:String,required:false, trim:true },
   lname: {type:String,required:false, trim:true },
-  userName:{type:String,required:true , trime:true},
   email: {type:String, required: true, trim:true }, 
   password: {type:String,required:true, trim:true },
   token:{type:String,required:false},
-  gender:{type:String,required:true}
+  gender:{type:String,required:true},
+  haveAvatar: {type:Boolean,required:true},
+  haveBanner: {type:Boolean,required:true},
+
 });
 
 
