@@ -11,9 +11,10 @@ const userSchema = new mongoose.Schema({
   email: {type:String, required: true, trim:true }, 
   password: {type:String,required:true, trim:true },
   token:{type:String,required:false},
-  gender:{type:String,required:true},
   haveAvatar: {type:Boolean,required:true},
   haveBanner: {type:Boolean,required:true},
+  accountType: {type:String,required:true},
+  gender:{type:String , required:true}
 
 });
 
@@ -35,11 +36,27 @@ userSchema.pre("save", function (next){
         next()
       });
     });
-  } 
-
-
-
+  }
 });
+
+
+
+userSchema.statics.userChangePasswordOperation = function(password){
+  // hash password
+  let user = this;
+  const saltRounds = 10;
+  return new Promise((resolve, reject) => {
+    bcrypt.genSalt(saltRounds, (err, salt) => {
+      if (err) throw new Error(err);
+      bcrypt.hash(password, salt, function (err, HASH) {
+        if (err) reject(err);
+        user.password = HASH;
+
+        resolve(user)
+      });
+    });
+    });
+}
 
 
 // compare user password and database password
