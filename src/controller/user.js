@@ -28,7 +28,8 @@ const SignupNewUser = async (req, res, next) => {
     const temp_token = jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 2, // 2 minute expire
-        data: {_id: newUser?._id},
+        data: {_id: newUser?._id },
+
       },
       process.env.JWT_SECRET_PASS
     );
@@ -101,11 +102,18 @@ const loginUser = async (req, res, next) => {
   try {
     const {email, password} = req.body;
 
-    let result = await UserModel.findUser_comparePassword(email, password);
+    let UserData = await UserModel.findUser_comparePassword(email, password);
+
+
+    // const expirationTimeToken = Math.floor(Date.now() / 1000) + 60 * 60  // 1 hour
+    const expirationTimeToken = Math.floor(Date.now() / 1000) + 60 * 60 * 6 // 6 hour
+    const tokenData = {_id: UserData._id, email: UserData.email , accountType : UserData.accountType}
+
+
     const token = jwt.sign(
       {
-        exp: Math.floor(Date.now() / 1000) + 60 * 60,
-        data: {_id: result._id, email: result.email},
+        exp: expirationTimeToken ,
+        data: tokenData ,
       },
       process.env.JWT_SECRET_PASS
     );
@@ -114,17 +122,20 @@ const loginUser = async (req, res, next) => {
       {email},
       {$set: {token}}
     );
+
+    console.log("User ---> "  ,  User)
+
     if (!User) {
-      res.status(404).json({msg: `You'r email not found in our records`});
+      res.status(404).json({msg: `You'r username not found in our records`});
       return;
     }
 
     const data = {
-      email: result.email,
-      fname: result.fname,
-      lname: result.lname,
-      gender : result.gender,
-      accountType: result.accountType,
+      email: User.email,
+      fname: User.fname,
+      lname: User.lname,
+      gender : User.gender,
+      accountType: User.accountType,
       picture: {
         avatar: null,
         banner: null,

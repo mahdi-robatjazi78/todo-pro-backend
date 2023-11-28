@@ -2,21 +2,29 @@ const WorkspaceModel = require("../db/schema/workspaceSchema");
 const cryptoRandomString = require("crypto-random-string");
 const CategoryModel = require("../db/schema/categorySchema");
 const TodoModel = require("../db/schema/todoSchema");
+const UserModel = require("../db/schema/userSchema")
+
 
 const makeWorkspace = async (req, res, next) => {
   try {
     const userID = req.user.data._id;
-  
+    const accountType = req.user.data.accountType;
+
     const wsList = await WorkspaceModel.find({
       owner: userID,
     });
-    
-    if(wsList.length >= 6){
-      res.status(423).json({ msg:`You are allowed to create 6 workspaces Please upgrade your account` });
+
+    if(accountType === "Free" && wsList.length >= 6){
+      res.status(423).json({ msg:`In a free account, you are allowed to create up to 6 workspaces. Please consider upgrading your account.`});
+      return
+    }
+
+    if(accountType === "Premium" && wsList.length >= 12){
+      res.status(423).json({ msg:`In a Premium account, you are allowed to create 12 workspaces.` });
       return
     }
     
-    else {
+
    
     const workspaceBody = new WorkspaceModel({
       title: req.body.title,
@@ -24,14 +32,13 @@ const makeWorkspace = async (req, res, next) => {
       owner: userID,
       id: cryptoRandomString({ length: 7 }),
       active: false,
-      categorySum: 0,
       todoSum: 0,
     });
 
     await workspaceBody.save();
 
     res.status(200).json({ msg: "you'r todo workspace created successfully" });
-  }
+
 
   } catch (error) {
     console.error(error);
@@ -55,15 +62,10 @@ const getAllWorkspaces = async (req, res, next) => {
       });
     }
 
-    if (wsList.length) {
       res.status(200).json({
         workspaces: wsList,
       });
-    } else {
-      res.status(200).json({
-        msg: "Not founde any workspaces",
-      });
-    }
+
   } catch (error) {
     res.status(400).json({
       msg: "Something went wrong",

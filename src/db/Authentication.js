@@ -5,7 +5,7 @@ const verifyToken = (req,res,next)=>{
     const token = req.headers["x-auth-token"]
 
     if(!token){
-        res.status(403).json({error: "token required for authentication"})
+        res.status(403).json({msg: "Token required for authentication please first login"})
     }
 
     
@@ -15,7 +15,7 @@ const verifyToken = (req,res,next)=>{
 
     }catch(error)
     {
-        return res.status(401).json({error:"Invalid token"})
+        return res.status(401).json({msg:"Invalid token please first login"})
     }
 
     return next()

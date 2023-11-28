@@ -8,40 +8,41 @@ const { updateWorkspaceTodoSum } = require("./workspace");
 const newCategory = async (req, res, next) => {
   try {
     const {title ,ws} = req.body
-    const id =  req.user.data._id
+    const userId =  req.user.data._id
+    const accountType = req.user.data.accountType;
 
-    // create new category 
+    let countOfUserAccountCategories  = await CategoryModel.count({ownerId : userId , ws }) + 1
+
+    if(accountType === "Free" && countOfUserAccountCategories > 6 ){
+      res.status(423).json({ msg:`In a free account, you are allowed to create up to 6 categories in every workspaces. Please consider upgrading your account.`});
+      return
+    }
+
+    if(accountType === "Premium" && countOfUserAccountCategories > 15 ){
+      res.status(423).json({ msg:`In a Premium account, you are allowed to create up to 15 categories in every workspaces.`});
+      return
+    }
 
     const newCategory = await new CategoryModel(
       {
         title,
         ws,
-        ownerId:id,
+        ownerId:userId,
         uuid :uuid.v4(),
         task_count:0
       }
     )
     await newCategory.save()
-
-    // workspace category sum increase one number
-
-    await WorkspaceModel.findOneAndUpdate({
-        id : ws
-      } , {
-        $inc:{categorySum:1}
-      }
-    );
-
     res.status(200).json({
-      msg:"Successfully categroy saved on  database"
+      msg:"Successfully category saved on  database"
     })
 
 
   } catch (error) {
-   
+
     res.status(500).json({
-      msg:"Something went wrong categroy not saved"
-    }) 
+      msg:"Something went wrong category dont saved"
+    })
 
   }
 };
@@ -92,24 +93,16 @@ const deleteOnlyCategory = async (req,res,next)=>{
     const ws = req.query.ws
 
 
-    await CategoryModel.findOneAndDelete({uuid:id})
+    await CategoryModel.findOneAndDelete({uuid:id , ws})
 
     await TodoModel.updateMany(
       {categoId:id},
       {
         $set:{
-          categoId:null
+          categoId:"other"
         }
       }
     )
- // workspace category sum decrease one number
-    await WorkspaceModel.findOneAndUpdate({
-        id : ws
-      } , {
-        $inc:{categorySum:-1}
-      }
-    );
-
 
     res.status(200).json({msg:"Successfully Deleted Category"})
   }catch(error){
@@ -125,13 +118,6 @@ const deleteCategoryWithTodos = async (req,res)=>{
     await TodoModel.deleteMany(
       {categoId:id},
     )
-
-     // workspace category sum decrease one number
-     await WorkspaceModel.findOneAndUpdate({
-      id : ws
-    } , {
-      $inc:{categorySum:-1}
-    });
 
     const lengthTodos = await updateWorkspaceTodoSum(ws)
 
