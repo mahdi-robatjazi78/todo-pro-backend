@@ -19,9 +19,18 @@ const SignupNewUser = async (req, res, next) => {
       gender: req.body?.gender || "unknown"
     };
 
+
+    console.log("data -> ",data)
+
     const newUser = new UserModel(data);
+
+    console.log("newUser -> ",newUser)
+
+
+
     await newUser.save();
 
+    console.log("new user saved !")
 
     // this used user send any avatar or banner when signup making temp token is nessessary
 
@@ -33,6 +42,9 @@ const SignupNewUser = async (req, res, next) => {
       },
       process.env.JWT_SECRET_PASS
     );
+
+    console.log("temp_token ->" , temp_token )
+
 
 
     res.status(200).json({

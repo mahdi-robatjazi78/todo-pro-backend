@@ -5,6 +5,8 @@ const UsersRouter = require('./users.routes')
 const CategoryRoutes = require("./category.routes")
 const WsRoutes = require("./workspace.routes")
 
+console.log("routeIndexHere")
+
 Router.use("/users" , UsersRouter)
 Router.use("/ws" , WsRoutes)
 Router.use("/todos" , TodosRouter)

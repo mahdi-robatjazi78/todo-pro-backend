@@ -15,6 +15,7 @@ const corsOptions = "*"
 app.use(express.static("public"))
 app.use(cors(corsOptions))
 app.use(express.json())
+console.log('...start...')
 
 app.use(MainRoutes)
 
